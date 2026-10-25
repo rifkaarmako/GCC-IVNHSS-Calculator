@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 
 # Persamaan (3.1): Energi Informasional Diperumum
+# Karena input berbentuk matriks 3D (penilai, kriteria, 6 komponen), np.sum akan otomatis 
+# menjumlahkan seluruh elemen sesuai dengan dua notasi sigma (untuk j=1 sampai n, dan i=1 sampai m)
 def calc_informational_energy(matrix, theta):
     return np.sum(matrix ** theta)
 
@@ -27,10 +29,11 @@ st.title("Kalkulator Generalized Correlation Coefficient of IVNHSS")
 # Pengaturan Variabel Utama
 st.sidebar.header("Pengaturan Parameter")
 theta = st.sidebar.number_input("Nilai Theta (θ)", min_value=0.1, value=1.0, step=0.1)
-k_objects = st.sidebar.number_input("Jumlah Objek Alternatif (k)", min_value=1, value=2, step=1)
+k_objects = st.sidebar.number_input("Jumlah Objek (k)", min_value=1, value=2, step=1)
+n_evaluators = st.sidebar.number_input("Jumlah Penilai (n)", min_value=1, value=2, step=1)
 m_params = st.sidebar.number_input("Jumlah Kriteria (m)", min_value=1, value=3, step=1)
 
-# Fungsi untuk membuat kerangka tabel kosong dengan 6 komponen IVNHSS
+# Fungsi membuat kerangka tabel
 def create_default_df(m):
     return pd.DataFrame({
         "Kriteria": [f"e_{i+1}" for i in range(m)],
@@ -39,29 +42,45 @@ def create_default_df(m):
         "F_L": [0.0]*m, "F_U": [0.0]*m,
     })
 
-# Bagian UI untuk Input Data
+# 1. Input Data Objek Ideal
 st.subheader("1. Input Data IVNHSS Objek Ideal")
-st.write("Ketikkan nilai interval ekspektasi batas bawah (L) dan batas atas (U) pada tabel berikut:")
-# st.data_editor merender tabel yang bisa diketik langsung oleh user
-df_ideal = st.data_editor(create_default_df(m_params), key="ideal", hide_index=True, use_container_width=True)
+ideal_data = []
+tabs_ideal = st.tabs([f"Penilai {j+1}" for j in range(n_evaluators)])
 
+for j, tab in enumerate(tabs_ideal):
+    with tab:
+        df_ideal = st.data_editor(create_default_df(m_params), key=f"ideal_eval_{j}", hide_index=True, use_container_width=True)
+        ideal_data.append(df_ideal)
+
+st.markdown("---")
+
+# 2. Input Data Objek Alternatif
 st.subheader("2. Input Data IVNHSS Objek Alternatif")
-objects_data = []
+objects_data = [] # Menyimpan data seluruh objek dari seluruh penilai
+
 for i in range(k_objects):
-    st.write(f"**Objek $u_{i+1}$**")
-    df_obj = st.data_editor(create_default_df(m_params), key=f"obj_{i}", hide_index=True, use_container_width=True)
-    objects_data.append(df_obj)
+    st.write(f"**Data Objek $u_{i+1}$**")
+    tabs_obj = st.tabs([f"Penilai {j+1}" for j in range(n_evaluators)])
+    
+    obj_eval_data = []
+    for j, tab in enumerate(tabs_obj):
+        with tab:
+            df_obj = st.data_editor(create_default_df(m_params), key=f"obj_{i}_eval_{j}", hide_index=True, use_container_width=True)
+            obj_eval_data.append(df_obj)
+    
+    objects_data.append(obj_eval_data)
+    st.write("") # spasi
 
 # Eksekusi Algoritma (Langkah 3 hingga 6)
-if st.button("Hitung dan Peringkatkan"):
-    # Mengambil nilai angka dari tabel (membuang kolom nama 'Kriteria')
-    ideal_matrix = df_ideal.drop(columns=["Kriteria"]).to_numpy(dtype=float)
+if st.button("Hitung dan Peringkatkan", type="primary"):
+    # Mengonversi list of DataFrames menjadi matriks NumPy 3D: (n_evaluators, m_params, 6)
+    ideal_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in ideal_data])
     
     results = []
-    for i, df_obj in enumerate(objects_data):
-        obj_matrix = df_obj.drop(columns=["Kriteria"]).to_numpy(dtype=float)
+    for i, obj_eval_data in enumerate(objects_data):
+        obj_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in obj_eval_data])
         
-        # Kalkulasi berdasarkan rumus
+        # Kalkulasi
         energy = calc_informational_energy(obj_matrix, theta)
         corr_measure = calc_correlation_measure(obj_matrix, ideal_matrix, theta)
         corr_coeff = calc_correlation_coefficient(obj_matrix, ideal_matrix, theta)
@@ -73,7 +92,7 @@ if st.button("Hitung dan Peringkatkan"):
             "Koefisien Korelasi (δ)": corr_coeff
         })
         
-    # Memproses hasil akhir dan mengurutkan dari yang terbesar
+    # Peringkat
     df_results = pd.DataFrame(results).sort_values(by="Koefisien Korelasi (δ)", ascending=False).reset_index(drop=True)
     df_results.index += 1
     
