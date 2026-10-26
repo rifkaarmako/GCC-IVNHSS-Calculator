@@ -72,7 +72,7 @@ for i in range(k_objects):
     st.write("") # spasi
 
 # Eksekusi Algoritma (Langkah 3 hingga 6)
-if st.button("Hitung dan Peringkatkan", type="primary"):
+if st.button("Hitung dan Lihat Peringkat", type="primary"):
     # Mengonversi list of DataFrames menjadi matriks NumPy 3D: (n_evaluators, m_params, 6)
     ideal_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in ideal_data])
     
