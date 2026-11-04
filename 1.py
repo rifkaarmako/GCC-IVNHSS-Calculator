@@ -24,26 +24,26 @@ def calc_correlation_coefficient(matrix1, matrix2, theta):
     return corr_measure / (np.sqrt(energy_1) * np.sqrt(energy_2))
 
 st.set_page_config(page_title="Kalkulator IVNHSS", layout="wide")
-st.title("Kalkulator Generalized Correlation Coefficient of IVNHSS")
+st.title("Generalized Correlation Coefficient of IVNHSS Calculator")
 
 # Pengaturan Variabel Utama
 st.sidebar.header("Pengaturan Parameter")
-theta = st.sidebar.number_input("Nilai Theta (θ)", min_value=0.1, value=1.0, step=0.1)
-k_objects = st.sidebar.number_input("Jumlah Objek (k)", min_value=1, value=2, step=1)
-n_evaluators = st.sidebar.number_input("Jumlah Penilai (n)", min_value=1, value=2, step=1)
-m_params = st.sidebar.number_input("Jumlah Kriteria (m)", min_value=1, value=3, step=1)
+theta = st.sidebar.number_input("Theta Value (θ)", min_value=0.1, value=1.0, step=0.1)
+k_objects = st.sidebar.number_input("Number of Object (k)", min_value=1, value=2, step=1)
+n_evaluators = st.sidebar.number_input("Number of Decision Maker (n)", min_value=1, value=2, step=1)
+m_params = st.sidebar.number_input("Number of Paired Criteria (m)", min_value=1, value=3, step=1)
 
 # Fungsi membuat kerangka tabel
 def create_default_df(m):
     return pd.DataFrame({
         "Kriteria": [f"e_{i+1}" for i in range(m)],
-        "T_L": [0.0]*m, "T_U": [0.0]*m,
+        "$T^L$": [0.0]*m, "T_U": [0.0]*m,
         "I_L": [0.0]*m, "I_U": [0.0]*m,
         "F_L": [0.0]*m, "F_U": [0.0]*m,
     })
 
 # 1. Input Data Objek Ideal
-st.subheader("1. Input Data IVNHSS Objek Ideal")
+st.subheader("1. Data Input IVNHSS Ideal Object")
 ideal_data = []
 tabs_ideal = st.tabs([f"Penilai {j+1}" for j in range(n_evaluators)])
 
@@ -55,7 +55,7 @@ for j, tab in enumerate(tabs_ideal):
 st.markdown("---")
 
 # 2. Input Data Objek Alternatif
-st.subheader("2. Input Data IVNHSS Objek Alternatif")
+st.subheader("2. Data Input IVNHSS Alternative Object")
 objects_data = [] # Menyimpan data seluruh objek dari seluruh penilai
 
 for i in range(k_objects):
