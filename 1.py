@@ -27,25 +27,25 @@ st.set_page_config(page_title="Kalkulator IVNHSS", layout="wide")
 st.title("Generalized Correlation Coefficient of IVNHSS Calculator")
 
 # Pengaturan Variabel Utama
-st.sidebar.header("Pengaturan Parameter")
+st.sidebar.header("Initial input")
 theta = st.sidebar.number_input("Theta Value (θ)", min_value=0.1, value=1.0, step=0.1)
 k_objects = st.sidebar.number_input("Number of Object (k)", min_value=1, value=2, step=1)
 n_evaluators = st.sidebar.number_input("Number of Decision Maker (n)", min_value=1, value=2, step=1)
-m_params = st.sidebar.number_input("Number of Paired Criteria (m)", min_value=1, value=3, step=1)
+m_params = st.sidebar.number_input("Number of Pairs of Criteria (m)", min_value=1, value=3, step=1)
 
 # Fungsi membuat kerangka tabel
 def create_default_df(m):
     return pd.DataFrame({
-        "Kriteria": [f"e_{i+1}" for i in range(m)],
-        "$T^L$": [0.0]*m, "T_U": [0.0]*m,
-        "I_L": [0.0]*m, "I_U": [0.0]*m,
-        "F_L": [0.0]*m, "F_U": [0.0]*m,
+        "Pairs of Criteria": [f"A_{i+1}" for i in range(m)],
+        "T^L": [0.0]*m, "T^U": [0.0]*m,
+        "I^L": [0.0]*m, "I^U": [0.0]*m,
+        "F^L": [0.0]*m, "F^U": [0.0]*m,
     })
 
 # 1. Input Data Objek Ideal
-st.subheader("1. Data Input IVNHSS Ideal Object")
+st.subheader("1. IVNHSS Ideal Object Data Entry")
 ideal_data = []
-tabs_ideal = st.tabs([f"Penilai {j+1}" for j in range(n_evaluators)])
+tabs_ideal = st.tabs([f"Decision Maker {j+1}" for j in range(n_evaluators)])
 
 for j, tab in enumerate(tabs_ideal):
     with tab:
@@ -55,11 +55,11 @@ for j, tab in enumerate(tabs_ideal):
 st.markdown("---")
 
 # 2. Input Data Objek Alternatif
-st.subheader("2. Data Input IVNHSS Alternative Object")
+st.subheader("2. IVNHSS Alternative Object Data Entry")
 objects_data = [] # Menyimpan data seluruh objek dari seluruh penilai
 
 for i in range(k_objects):
-    st.write(f"**Data Objek $u_{i+1}$**")
+    st.write(f"**Data Object $u_{i+1}$**")
     tabs_obj = st.tabs([f"Penilai {j+1}" for j in range(n_evaluators)])
     
     obj_eval_data = []
@@ -72,7 +72,7 @@ for i in range(k_objects):
     st.write("") # spasi
 
 # Eksekusi Algoritma (Langkah 3 hingga 6)
-if st.button("Hitung dan Lihat Peringkat", type="primary"):
+if st.button("Calculate and view the rankings", type="primary"):
     # Mengonversi list of DataFrames menjadi matriks NumPy 3D: (n_evaluators, m_params, 6)
     ideal_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in ideal_data])
     
@@ -86,10 +86,10 @@ if st.button("Hitung dan Lihat Peringkat", type="primary"):
         corr_coeff = calc_correlation_coefficient(obj_matrix, ideal_matrix, theta)
         
         results.append({
-            "Objek": f"u_{i+1}",
-            "Energi Informasional (ζ)": energy,
-            "Ukuran Korelasi (C)": corr_measure,
-            "Koefisien Korelasi (δ)": corr_coeff
+            "Object": f"u_{i+1}",
+            "Informasional Energy (ζ)": energy,
+            "Correlation Measure (C)": corr_measure, 
+            "Correlation Coefficient (δ)": corr_coeff
         })
         
     # Peringkat
@@ -97,6 +97,6 @@ if st.button("Hitung dan Lihat Peringkat", type="primary"):
     df_results.index += 1
     
     st.markdown("---")
-    st.subheader("Hasil Perhitungan dan Analisis Peringkat")
-    st.success(f"Berdasarkan nilai koefisien korelasi maksimum, objek terbaik adalah **{df_results.iloc[0]['Objek']}**.")
+    st.subheader("Calculation Results and Ranking Analysis")
+    st.success(f"Based on the maximum correlation coefficient, the best object is object **{df_results.iloc[0]['Objek']}**.")
     st.table(df_results)
