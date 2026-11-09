@@ -74,11 +74,11 @@ for i in range(k_objects):
 # Eksekusi Algoritma (Langkah 3 hingga 6)
 if st.button("Calculate and view the rankings", type="primary"):
     # Mengonversi list of DataFrames menjadi matriks NumPy 3D: (n_evaluators, m_params, 6)
-    ideal_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in ideal_data])
+    ideal_matrix = np.array([df.drop(columns=["Pairs of Criteria"]).to_numpy(dtype=float) for df in ideal_data])
     
     results = []
     for i, obj_eval_data in enumerate(objects_data):
-        obj_matrix = np.array([df.drop(columns=["Kriteria"]).to_numpy(dtype=float) for df in obj_eval_data])
+        obj_matrix = np.array([df.drop(columns=["Pairs of Criteria"]).to_numpy(dtype=float) for df in obj_eval_data])
         
         # Kalkulasi
         energy = calc_informational_energy(obj_matrix, theta)
@@ -93,10 +93,10 @@ if st.button("Calculate and view the rankings", type="primary"):
         })
         
     # Peringkat
-    df_results = pd.DataFrame(results).sort_values(by="Koefisien Korelasi (δ)", ascending=False).reset_index(drop=True)
+    df_results = pd.DataFrame(results).sort_values(by="Correlation Coefficient (δ)", ascending=False).reset_index(drop=True)
     df_results.index += 1
     
     st.markdown("---")
     st.subheader("Calculation Results and Ranking Analysis")
-    st.success(f"Based on the maximum correlation coefficient, the best object is object **{df_results.iloc[0]['Objek']}**.")
+    st.success(f"Based on the maximum correlation coefficient, the best object is object **{df_results.iloc[0]['Object']}**.")
     st.table(df_results)
