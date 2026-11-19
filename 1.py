@@ -26,6 +26,7 @@ def calc_correlation_coefficient(matrix1, matrix2, theta):
 st.set_page_config(page_title="Kalkulator IVNHSS", layout="wide")
 st.title("Kalkulator Koefisien Korelasi Diperumum pada IVNHSS")
 st.caption("Perhitungan Energi Informasional, Ukuran Korelasi, dan Koefisien Korelasi Diperumum pada *Interval-Valued Neutrosophic Hypersoft Set*")
+st.caption("Penjelasan selengkapnya dapat dilihat pada artikel pada tautan berikut: (*link artikel setelah terbit*)")
 
 # Pengaturan Variabel Utama
 st.sidebar.header("Input Awal")
