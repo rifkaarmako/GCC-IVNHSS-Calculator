@@ -330,7 +330,7 @@ if st.button("Hitung dan Tampilkan Peringkat", type="primary"):
         },
     )
 
-    with st.expander("Lihat Detail Bobot Penilai (β<sub>r</sub>) & Bobot Kriteria (α<sub>i</sub>)"):
+    with st.expander("Lihat Detail Bobot Penilai (β_r) & Bobot Kriteria (α_i)"):
         eval_labels_html = [f"P<sub>{r+1}</sub>" for r in range(n_evaluators)]
         crit_labels_html = [f"A<sub>{i+1}</sub>" for i in range(m_params)]
 
