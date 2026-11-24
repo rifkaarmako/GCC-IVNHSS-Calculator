@@ -176,12 +176,14 @@ col_cfg = {
     "F^U": st.column_config.NumberColumn(min_value=0.0, max_value=1.0, step=0.01),
 }
 
-st.subheader("1. Input Data Objek Ideal IVNHSS (ψ̂, Λ)")
+st.subheader("1. Input Data Objek Ideal IVNHSS")
+st.latex(r"(\hat{\psi}, \Lambda) = \left\{ \left( A_i;\; [T^L,\; T^U],\; [I^L,\; I^U],\; [F^L,\; F^U] \right) \;\middle|\; A_i \in \Lambda,\; i = 1, 2, \dots, m \right\}")
 ideal_data = []
 tabs_ideal = st.tabs([f"Pengambil Keputusan P_{r+1}" for r in range(n_evaluators)])
 
 for r, tab in enumerate(tabs_ideal):
     with tab:
+        st.caption(f"Penilaian objek ideal oleh penilai ke-{r+1} ($P_{{{r+1}}}$): $T^L \\le T^U$, $I^L \\le I^U$, $F^L \\le F^U \\in [0, 1]$.")
         df_ideal = st.data_editor(
             create_default_df(m_params),
             column_config=col_cfg,
@@ -194,15 +196,17 @@ for r, tab in enumerate(tabs_ideal):
 st.markdown("---")
 
 st.subheader("2. Input Data Objek Alternatif IVNHSS")
+st.latex(r"(\psi_r, \Lambda) \text{ atas } U = \{u_1, u_2, \dots, u_k\} \text{ untuk setiap penilai } P_r,\; r = 1, 2, \dots, n")
 objects_data = []
 
 for j in range(k_objects):
-    st.write(f"**Data Objek Alternatif $u_{j+1}$**")
+    st.markdown(f"**Data Objek Alternatif $u_{{{j+1}}}$**")
     tabs_obj = st.tabs([f"Pengambil Keputusan P_{r+1}" for r in range(n_evaluators)])
 
     obj_eval_data = []
     for r, tab in enumerate(tabs_obj):
         with tab:
+            st.caption(f"Penilaian objek $u_{{{j+1}}}$ oleh penilai $P_{{{r+1}}}$ pada setiap pasangan kriteria $A_i$.")
             df_obj = st.data_editor(
                 create_default_df(m_params),
                 column_config=col_cfg,
