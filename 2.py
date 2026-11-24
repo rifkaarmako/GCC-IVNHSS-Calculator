@@ -193,7 +193,6 @@ for r, tab in enumerate(tabs_ideal):
 st.markdown("---")
 
 st.subheader("2. Input Data Objek Alternatif IVNHSS")
-st.latex(r"(\psi_r, \Lambda) \text{ atas } U = \{u_1, u_2, \dots, u_k\} \text{ untuk setiap penilai } P_r,\; r = 1, 2, \dots, n")
 objects_data = []
 
 for j in range(k_objects):
@@ -203,7 +202,6 @@ for j in range(k_objects):
     obj_eval_data = []
     for r, tab in enumerate(tabs_obj):
         with tab:
-            st.caption(f"Penilaian objek $u_{{{j+1}}}$ oleh penilai $P_{{{r+1}}}$ pada setiap pasangan kriteria $A_i$.")
             df_obj = st.data_editor(
                 create_default_df(m_params),
                 column_config=col_cfg,
