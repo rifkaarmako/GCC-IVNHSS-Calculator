@@ -102,6 +102,46 @@ def validate_ivnhss_tables(ideal_dfs, objects_dfs):
     return warnings
 
 
+def render_math_table(df, col_labels=None, index_label=None, decimals=6):
+    """Menampilkan DataFrame sebagai tabel HTML yang mendukung tag <sub> dan <sup>."""
+    cols = df.columns.tolist()
+    headers = []
+    if index_label is not None:
+        headers.append(index_label)
+    for c in cols:
+        headers.append(col_labels.get(c, c) if col_labels else c)
+
+    th_html = "".join(
+        f"<th style='text-align:left; padding:8px 10px; border-bottom:2px solid rgba(128,128,128,0.4);'>{h}</th>"
+        for h in headers
+    )
+
+    rows_html = []
+    for idx, row in df.iterrows():
+        cells = []
+        if index_label is not None:
+            idx_str = f"{idx:.{decimals}f}" if isinstance(idx, (float, np.floating)) else str(idx)
+            cells.append(f"<td style='padding:7px 10px; border-bottom:1px solid rgba(128,128,128,0.2);'>{idx_str}</td>")
+        for c in cols:
+            val = row[c]
+            if isinstance(val, (float, np.floating)):
+                cell = f"{val:.{decimals}f}"
+            else:
+                cell = str(val)
+            cells.append(f"<td style='padding:7px 10px; border-bottom:1px solid rgba(128,128,128,0.2);'>{cell}</td>")
+        rows_html.append(f"<tr>{''.join(cells)}</tr>")
+
+    html = (
+        "<div style='overflow-x:auto; margin:6px 0 14px 0;'>"
+        "<table style='width:100%; border-collapse:collapse; font-size:0.95rem;'>"
+        f"<thead><tr>{th_html}</tr></thead>"
+        f"<tbody>{''.join(rows_html)}</tbody>"
+        "</table>"
+        "</div>"
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+
 st.set_page_config(page_title="Kalkulator IVNHSS Berbobot", layout="wide")
 st.title("Kalkulator Koefisien Korelasi Diperumum Berbobot pada IVNHSS")
 st.caption(
@@ -254,24 +294,22 @@ if st.button("Hitung dan Tampilkan Peringkat", type="primary"):
             psi_bar_j, ideal_matrix, alpha_weights, beta_weights, theta
         )
         results.append({
-            "Objek Alternatif": f"u_{j+1}",
-            "Energi Informasional (ζ)": energy_obj,
-            "Ukuran Korelasi (C)": corr_measure,
-            "Koefisien Korelasi (δ)": corr_coeff,
+            "objek": f"u<sub>{j+1}</sub>",
+            "objek_plain": f"u_{j+1}",
+            "energi": energy_obj,
+            "ukuran": corr_measure,
+            "koef": corr_coeff,
         })
 
-    df_results = (
+    df_sorted = (
         pd.DataFrame(results)
-        .sort_values(by="Koefisien Korelasi (δ)", ascending=False)
+        .sort_values(by="koef", ascending=False)
         .reset_index(drop=True)
     )
-    df_results.index += 1
-    df_results.index.name = "Peringkat"
+    df_sorted.index += 1
 
-    max_corr = df_results["Koefisien Korelasi (δ)"].max()
-    best_objects = df_results.loc[
-        df_results["Koefisien Korelasi (δ)"] == max_corr, "Objek Alternatif"
-    ].tolist()
+    max_corr = df_sorted["koef"].max()
+    best_objects = df_sorted.loc[df_sorted["koef"] == max_corr, "objek_plain"].tolist()
     best_label = ", ".join(f"**{obj}**" for obj in best_objects)
 
     st.markdown("---")
@@ -280,36 +318,59 @@ if st.button("Hitung dan Tampilkan Peringkat", type="primary"):
         f"Berdasarkan nilai koefisien korelasi tertinggi ({max_corr:.6f}), "
         f"objek alternatif terbaik adalah {best_label}."
     )
-    st.table(df_results)
 
-    with st.expander("Lihat Detail Bobot Penilai (β_r) & Bobot Kriteria (α_i)"):
-        eval_labels = [f"P_{r+1}" for r in range(n_evaluators)]
-        crit_labels = [f"A_{i+1}" for i in range(m_params)]
+    df_rank_disp = df_sorted[["objek", "energi", "ukuran", "koef"]]
+    render_math_table(
+        df_rank_disp,
+        index_label="Peringkat",
+        col_labels={
+            "objek": "Objek Alternatif",
+            "energi": "Energi Informasional (ζ<sup>θ</sup>)",
+            "ukuran": "Ukuran Korelasi (C<sup>θ</sup>)",
+            "koef": "Koefisien Korelasi (δ<sup>θ</sup>)",
+        },
+    )
 
-        st.write("**Matriks Korelasi Antar Penilai δ^θ{(ψ_r, Λ), (ψ_s, Λ)} (Langkah 2)**")
-        st.dataframe(
-            pd.DataFrame(delta_rs, index=eval_labels, columns=eval_labels),
-            use_container_width=True,
+    with st.expander("Lihat Detail Bobot Penilai (β<sub>r</sub>) & Bobot Kriteria (α<sub>i</sub>)"):
+        eval_labels_html = [f"P<sub>{r+1}</sub>" for r in range(n_evaluators)]
+        crit_labels_html = [f"A<sub>{i+1}</sub>" for i in range(m_params)]
+
+        st.markdown("**Matriks Korelasi Antar Penilai δ<sup>θ</sup>{(ψ<sub>r</sub>, Λ), (ψ<sub>s</sub>, Λ)} (Langkah 2)**", unsafe_allow_html=True)
+        df_delta_disp = pd.DataFrame(delta_rs, index=eval_labels_html, columns=eval_labels_html)
+        render_math_table(df_delta_disp, index_label="Penilai")
+
+        st.markdown("**Efisiensi Korelasi & Bobot Penilai β<sub>r</sub> (Langkah 3)**", unsafe_allow_html=True)
+        df_beta_disp = pd.DataFrame({
+            "penilai": eval_labels_html,
+            "efisiensi": gamma_r,
+            "beta": beta_weights,
+        })
+        render_math_table(
+            df_beta_disp,
+            col_labels={
+                "penilai": "Penilai",
+                "efisiensi": "Efisiensi (γ<sup>θ</sup>)",
+                "beta": "Bobot Penilai (β<sub>r</sub>)",
+            },
         )
 
-        st.write("**Efisiensi Korelasi & Bobot Penilai β_r (Langkah 3)**")
-        df_beta = pd.DataFrame({
-            "Penilai": eval_labels,
-            "Efisiensi γ^θ": gamma_r,
-            "Bobot Penilai (β_r)": beta_weights,
-        })
-        st.dataframe(df_beta, hide_index=True, use_container_width=True)
+        st.markdown("**Nilai Entropi Masing-Masing IVNS E<sub>r</sub>(A<sub>i</sub>) per Penilai & Kriteria (Langkah 4 - Persamaan 2.3.2)**", unsafe_allow_html=True)
+        df_entropy_disp = pd.DataFrame(entropy_r_i, index=eval_labels_html, columns=crit_labels_html)
+        render_math_table(df_entropy_disp, index_label="Penilai")
 
-        st.write("**Nilai Entropi Masing-Masing IVNS E_r(A_i) per Penilai & Kriteria (Langkah 4 - Persamaan 2.3.2)**")
-        df_entropy_ivns = pd.DataFrame(entropy_r_i, index=eval_labels, columns=crit_labels)
-        df_entropy_ivns.index.name = "Penilai"
-        st.dataframe(df_entropy_ivns, use_container_width=True)
-
-        st.write("**Entropi Kumulatif, Divergensi & Bobot Kriteria α_i (Langkah 4 - Persamaan 3.2.1–3.2.3)**")
-        df_alpha = pd.DataFrame({
-            "Pasangan Kriteria": crit_labels,
-            "Entropi Kumulatif Ē(A_i)": cum_entropy_i,
-            "Divergensi (DV_i)": divergence_i,
-            "Bobot Kriteria (α_i)": alpha_weights,
+        st.markdown("**Entropi Kumulatif, Divergensi & Bobot Kriteria α<sub>i</sub> (Langkah 4 - Persamaan 3.2.1–3.2.3)**", unsafe_allow_html=True)
+        df_alpha_disp = pd.DataFrame({
+            "kriteria": crit_labels_html,
+            "entropi_kum": cum_entropy_i,
+            "dv": divergence_i,
+            "alpha": alpha_weights,
         })
-        st.dataframe(df_alpha, hide_index=True, use_container_width=True)
+        render_math_table(
+            df_alpha_disp,
+            col_labels={
+                "kriteria": "Pasangan Kriteria",
+                "entropi_kum": "Entropi Kumulatif Ē(A<sub>i</sub>)",
+                "dv": "Divergensi (DV<sub>i</sub>)",
+                "alpha": "Bobot Kriteria (α<sub>i</sub>)",
+            },
+        )
