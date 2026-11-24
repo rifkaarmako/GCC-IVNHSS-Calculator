@@ -143,12 +143,11 @@ def render_math_table(df, col_labels=None, index_label=None, decimals=6):
 
 
 st.set_page_config(page_title="Kalkulator IVNHSS Berbobot", layout="wide")
-st.title("Kalkulator Koefisien Korelasi Diperumum Berbobot pada IVNHSS")
+st.title("Kalkulator Koefisien Korelasi Berbobot Diperumum pada IVNHSS")
 st.caption(
     "Perhitungan Bobot Penilai (Efisiensi Korelasi Ternormalisasi), Bobot Kriteria (Entropi & Divergensi), "
     "serta Peringkat Objek Alternatif pada *Interval-Valued Neutrosophic Hypersoft Set*"
 )
-st.caption("Penjelasan selengkapnya dapat dilihat pada artikel pada tautan berikut: (*link artikel setelah terbit*)")
 
 st.sidebar.header("Input Awal")
 theta = st.sidebar.number_input("Nilai Theta (θ)", value=1.0, step=0.1)
@@ -177,13 +176,12 @@ col_cfg = {
 }
 
 st.subheader("1. Input Data Objek Ideal IVNHSS")
-st.latex(r"(\hat{\psi}, \Lambda) = \left\{ \left( A_i;\; [T^L,\; T^U],\; [I^L,\; I^U],\; [F^L,\; F^U] \right) \;\middle|\; A_i \in \Lambda,\; i = 1, 2, \dots, m \right\}")
 ideal_data = []
 tabs_ideal = st.tabs([f"Pengambil Keputusan P_{r+1}" for r in range(n_evaluators)])
 
 for r, tab in enumerate(tabs_ideal):
     with tab:
-        st.caption(f"Penilaian objek ideal oleh penilai ke-{r+1} ($P_{{{r+1}}}$): $T^L \\le T^U$, $I^L \\le I^U$, $F^L \\le F^U \\in [0, 1]$.")
+        st.caption()
         df_ideal = st.data_editor(
             create_default_df(m_params),
             column_config=col_cfg,
