@@ -181,7 +181,6 @@ tabs_ideal = st.tabs([f"Pengambil Keputusan P_{r+1}" for r in range(n_evaluators
 
 for r, tab in enumerate(tabs_ideal):
     with tab:
-        st.caption()
         df_ideal = st.data_editor(
             create_default_df(m_params),
             column_config=col_cfg,
